@@ -1,6 +1,8 @@
 // Client-side rendering and interaction for the Flask-backed Sudoku
 const SIZE = 9;
 let puzzle = [];
+let timerInterval = null;
+let startTime = null;
 
 // Difficulty to clues mapping
 const DIFFICULTY_LEVELS = {
@@ -135,6 +137,7 @@ function updateConflictHighlighting() {
 function renderPuzzle(puz) {
   puzzle = puz;
   createBoardElement();
+  startTimer();
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
   for (let i = 0; i < SIZE; i++) {
@@ -165,6 +168,26 @@ function markCellAsHinted(row, col, value) {
   inp.value = value;
   inp.disabled = true;
   inp.className = 'sudoku-cell hinted';
+}
+
+function startTimer() {
+  // Clear any existing interval
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  
+  startTime = Date.now();
+  const timerDisplay = document.getElementById('timer');
+  
+  timerInterval = setInterval(() => {
+    const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    const hours = Math.floor(elapsed / 3600);
+    const minutes = Math.floor((elapsed % 3600) / 60);
+    const seconds = elapsed % 60;
+    
+    const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+    timerDisplay.innerText = `Time: ${timeString}`;
+  }, 1000);
 }
 
 async function getHint() {
