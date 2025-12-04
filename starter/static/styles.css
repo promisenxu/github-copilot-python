@@ -1,3 +1,7 @@
+.sudoku-cell.hinted {
+    background-color: #7fff7f !important;
+    color: #1a1a1a;
+}
 body {
     font-family: Arial, sans-serif;
     background: #f4f4f4;
@@ -107,14 +111,19 @@ h1 {
     background: #ffcdd2;
 }
 
+/* Conflict detection - light red border */
+.sudoku-cell.conflict {
+    border: 1px solid #fb2e43 !important;
+}
+
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
-    border-right: 3px solid #333;
+    border-right: 1px solid #333;
 }
 
 .sudoku-row:nth-child(3) .sudoku-cell,
 .sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 3px solid #333;
+    border-bottom: 1px solid #333;
 }
 
 .controls {

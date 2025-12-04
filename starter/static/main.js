@@ -32,6 +32,106 @@ function createBoardElement() {
   }
 }
 
+function getConflictingCells() {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const conflicts = new Set();
+  
+  // Build a map of cell values
+  const cellValues = {};
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      const idx = i * SIZE + j;
+      const val = inputs[idx].value;
+      if (val) {
+        cellValues[`${i},${j}`] = parseInt(val, 10);
+      }
+    }
+  }
+  
+  // Check each cell for conflicts
+  for (let i = 0; i < SIZE; i++) {
+    for (let j = 0; j < SIZE; j++) {
+      const idx = i * SIZE + j;
+      const inp = inputs[idx];
+      const val = inp.value;
+      
+      if (!val) continue; // Skip empty cells
+      if (inp.disabled) continue; // Skip prefilled cells
+      
+      const numVal = parseInt(val, 10);
+      let hasConflict = false;
+      
+      // Check row
+      for (let col = 0; col < SIZE; col++) {
+        if (col === j) continue;
+        const otherIdx = i * SIZE + col;
+        const otherVal = inputs[otherIdx].value;
+        if (otherVal && parseInt(otherVal, 10) === numVal) {
+          hasConflict = true;
+          break;
+        }
+      }
+      
+      // Check column
+      if (!hasConflict) {
+        for (let row = 0; row < SIZE; row++) {
+          if (row === i) continue;
+          const otherIdx = row * SIZE + j;
+          const otherVal = inputs[otherIdx].value;
+          if (otherVal && parseInt(otherVal, 10) === numVal) {
+            hasConflict = true;
+            break;
+          }
+        }
+      }
+      
+      // Check 3x3 box
+      if (!hasConflict) {
+        const boxRowStart = Math.floor(i / 3) * 3;
+        const boxColStart = Math.floor(j / 3) * 3;
+        for (let row = boxRowStart; row < boxRowStart + 3; row++) {
+          for (let col = boxColStart; col < boxColStart + 3; col++) {
+            if (row === i && col === j) continue;
+            const otherIdx = row * SIZE + col;
+            const otherVal = inputs[otherIdx].value;
+            if (otherVal && parseInt(otherVal, 10) === numVal) {
+              hasConflict = true;
+              break;
+            }
+          }
+          if (hasConflict) break;
+        }
+      }
+      
+      if (hasConflict) {
+        conflicts.add(idx);
+      }
+    }
+  }
+  
+  return conflicts;
+}
+
+function updateConflictHighlighting() {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const conflicts = getConflictingCells();
+  
+  for (let idx = 0; idx < inputs.length; idx++) {
+    const inp = inputs[idx];
+    if (inp.disabled) continue; // Don't modify prefilled cells
+    
+    if (conflicts.has(idx)) {
+      if (!inp.className.includes('conflict')) {
+        inp.className = inp.className.replace('incorrect', '').trim() + ' conflict';
+      }
+    } else {
+      inp.className = inp.className.replace('conflict', '').trim();
+    }
+  }
+}
+
 function renderPuzzle(puz) {
   puzzle = puz;
   createBoardElement();
@@ -50,10 +150,36 @@ function renderPuzzle(puz) {
         inp.value = '';
         inp.disabled = false;
       }
+      // Add conflict detection on input
+      inp.addEventListener('input', updateConflictHighlighting);
     }
   }
 }
 
+// Utility to mark a cell as hinted
+function markCellAsHinted(row, col, value) {
+  const boardDiv = document.getElementById('sudoku-board');
+  const inputs = boardDiv.getElementsByTagName('input');
+  const idx = row * SIZE + col;
+  const inp = inputs[idx];
+  inp.value = value;
+  inp.disabled = true;
+  inp.className = 'sudoku-cell hinted';
+}
+
+async function getHint() {
+  const res = await fetch('/hint', {method: 'POST'});
+  const data = await res.json();
+  const msg = document.getElementById('message');
+  if (data.error) {
+    msg.style.color = '#d32f2f';
+    msg.innerText = data.error;
+    return;
+  }
+  markCellAsHinted(data.row, data.col, data.value);
+  msg.style.color = '#388e3c';
+  msg.innerText = `Hint: Cell [${data.row+1}, ${data.col+1}] filled.`;
+}
 async function newGame() {
   const difficulty = document.getElementById('difficulty').value;
   const clues = DIFFICULTY_LEVELS[difficulty];
@@ -109,6 +235,7 @@ async function checkSolution() {
 window.addEventListener('load', () => {
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
+  document.getElementById('hint-button').addEventListener('click', getHint);
   // initialize
   newGame();
 });
