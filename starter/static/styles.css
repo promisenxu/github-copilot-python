@@ -39,9 +39,68 @@ h1 {
 }
 
 .sudoku-cell.prefilled {
-    background: #e0e0e0;
+    background: transparent;
     font-weight: bold;
     color: #333;
+}
+
+/* Alternating outer 3x3 block backgrounds (checkerboard of blocks) */
+/* Color A */
+.sudoku-row:nth-child(1) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(2) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(3) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(1) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(2) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(3) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(4) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(4) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(4) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(5) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(5) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(5) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(6) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(6) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(6) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(7) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(8) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(9) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(7) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(8) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(9) .sudoku-cell:nth-child(n+7) {
+    background: #d3cfcf;
+}
+
+/* Color B (the other blocks) */
+.sudoku-row:nth-child(1) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(1) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(1) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(2) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(2) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(2) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(3) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(3) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(3) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(4) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(5) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(6) .sudoku-cell:nth-child(-n+3),
+.sudoku-row:nth-child(4) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(5) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(6) .sudoku-cell:nth-child(n+7),
+.sudoku-row:nth-child(7) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(7) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(7) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(8) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(8) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(8) .sudoku-cell:nth-child(6),
+.sudoku-row:nth-child(9) .sudoku-cell:nth-child(4),
+.sudoku-row:nth-child(9) .sudoku-cell:nth-child(5),
+.sudoku-row:nth-child(9) .sudoku-cell:nth-child(6) {
+    background: #ffffff;
+}
+
+/* Keep incorrect highlight clearly visible */
+.sudoku-cell.incorrect {
+    background: #ffcdd2 !important;
 }
 
 .sudoku-cell.incorrect {
@@ -60,6 +119,37 @@ h1 {
 
 .controls {
     margin: 20px auto;
+}
+
+.difficulty-selector {
+    margin-bottom: 15px;
+}
+
+.difficulty-selector label {
+    margin-right: 10px;
+    font-size: 16px;
+    color: #333;
+}
+
+.difficulty-selector select {
+    padding: 6px 12px;
+    font-size: 16px;
+    border: 1px solid #bbb;
+    border-radius: 4px;
+    background: #fff;
+    color: #333;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.difficulty-selector select:hover {
+    border-color: #1976d2;
+}
+
+.difficulty-selector select:focus {
+    outline: none;
+    border-color: #1976d2;
+    box-shadow: 0 0 4px rgba(25, 118, 210, 0.5);
 }
 
 button {

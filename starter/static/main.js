@@ -2,6 +2,13 @@
 const SIZE = 9;
 let puzzle = [];
 
+// Difficulty to clues mapping
+const DIFFICULTY_LEVELS = {
+  easy: 50,
+  medium: 35,
+  hard: 20
+};
+
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
@@ -48,7 +55,9 @@ function renderPuzzle(puz) {
 }
 
 async function newGame() {
-  const res = await fetch('/new');
+  const difficulty = document.getElementById('difficulty').value;
+  const clues = DIFFICULTY_LEVELS[difficulty];
+  const res = await fetch(`/new?clues=${clues}`);
   const data = await res.json();
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
