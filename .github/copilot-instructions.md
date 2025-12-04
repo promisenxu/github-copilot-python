@@ -1,5 +1,12 @@
 # Copilot Instructions for Sudoku Game Refactoring
 
+## Documentation Guidelines
+- **Add comments for non-obvious logic, critical sections, and key algorithms**
+- **Keep comments concise—don't over-explain obvious things**
+- **Avoid redundant comments that restate the code**
+- **Focus on "why" and "what" for complex flows, not literal code translation**
+- **Document function purpose, key parameters, and any non-standard patterns**
+
 ## Project Overview
 This is a Flask-based Sudoku game designed as a refactoring exercise. The architecture separates game logic (Python backend) from UI rendering (Vanilla JavaScript frontend) with clear client-server communication via Flask routes.
 

@@ -11,11 +11,12 @@ def create_empty_board():
     return [[EMPTY for _ in range(SIZE)] for _ in range(SIZE)]
 
 def is_safe(board, row, col, num):
-    # Check row and column
+    """Check if placing num at (row, col) violates Sudoku rules."""
+    # Check row and column constraints
     for x in range(SIZE):
         if board[row][x] == num or board[x][col] == num:
             return False
-    # Check 3x3 box
+    # Check 3x3 box constraint
     start_row = row - row % 3
     start_col = col - col % 3
     for i in range(3):
@@ -25,9 +26,11 @@ def is_safe(board, row, col, num):
     return True
 
 def fill_board(board):
+    """Backtracking solver to fill empty board with valid numbers."""
     for row in range(SIZE):
         for col in range(SIZE):
             if board[row][col] == EMPTY:
+                # Try candidates in random order for puzzle diversity
                 possible = list(range(1, SIZE + 1))
                 random.shuffle(possible)
                 for candidate in possible:
@@ -35,12 +38,15 @@ def fill_board(board):
                         board[row][col] = candidate
                         if fill_board(board):
                             return True
+                        # Backtrack if this path doesn't lead to solution
                         board[row][col] = EMPTY
                 return False
     return True
 
 def remove_cells(board, clues):
-    attempts = SIZE * SIZE - clues
+    """Remove cells from board while maintaining unique solution.
+    Args: clues - number of clues to keep in final puzzle"""
+    attempts = SIZE * SIZE - clues  # Number of cells to remove
     cells = [(r, c) for r in range(SIZE) for c in range(SIZE)]
     random.shuffle(cells)
     idx = 0
@@ -50,10 +56,11 @@ def remove_cells(board, clues):
         if board[row][col] != EMPTY:
             backup = board[row][col]
             board[row][col] = EMPTY
-            # Check uniqueness
+            # Only keep removal if puzzle still has unique solution
             if has_unique_solution(board):
                 attempts -= 1
             else:
+                # Restore cell if removal breaks uniqueness
                 board[row][col] = backup
 
 def generate_puzzle(clues=35):
@@ -66,10 +73,8 @@ def generate_puzzle(clues=35):
 
 # --- Unique solution checker ---
 def count_solutions(board, limit=2):
-    """
-    Counts the number of solutions for a given Sudoku board, up to 'limit'.
-    Returns the number of solutions found (1 or more).
-    """
+    """Count number of solutions (stops at limit for efficiency).
+    Returns count capped at limit value."""
     def helper(b):
         for row in range(SIZE):
             for col in range(SIZE):
@@ -103,7 +108,5 @@ def count_solutions(board, limit=2):
     return solutions[0]
 
 def has_unique_solution(board):
-    """
-    Returns True if the board has exactly one solution, False otherwise.
-    """
+    """Check if board has exactly one solution."""
     return count_solutions(board, limit=2) == 1

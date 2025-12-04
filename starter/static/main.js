@@ -5,7 +5,7 @@ let timerInterval = null;
 let startTime = null;
 let lastElapsedSeconds = 0;
 
-// Difficulty to clues mapping
+// Difficulty to clues mapping (more clues = easier)
 const DIFFICULTY_LEVELS = {
   easy: 50,
   medium: 35,
@@ -15,7 +15,46 @@ const DIFFICULTY_LEVELS = {
 let numberOfHintsRequested = 0;
 let difficultyLevelLastUsed = 'medium';
 
+// Initialize dark mode from localStorage or system preference
+function initializeDarkMode() {
+  const savedMode = localStorage.getItem('sudoku-dark-mode');
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  
+  // Use saved preference, else fall back to system preference
+  if (savedMode !== null) {
+    if (savedMode === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+  } else if (prefersDark) {
+    document.body.classList.add('dark-mode');
+  }
+  
+  updateThemeToggleButton();
+}
+
+// Update the theme toggle button icon based on current mode
+function updateThemeToggleButton() {
+  const btn = document.getElementById('theme-toggle-btn');
+  if (document.body.classList.contains('dark-mode')) {
+    btn.textContent = '☀️';
+    btn.title = 'Switch to light mode';
+  } else {
+    btn.textContent = '🌙';
+    btn.title = 'Switch to dark mode';
+  }
+}
+
+// Toggle dark mode
+function toggleDarkMode() {
+  document.body.classList.toggle('dark-mode');
+  const isDarkMode = document.body.classList.contains('dark-mode');
+  localStorage.setItem('sudoku-dark-mode', isDarkMode.toString());
+  updateThemeToggleButton();
+}
+
+
 function createBoardElement() {
+  // Generate 9x9 grid of input elements; data-row and data-col for tracking
   const boardDiv = document.getElementById('sudoku-board');
   boardDiv.innerHTML = '';
   for (let i = 0; i < SIZE; i++) {
@@ -29,6 +68,7 @@ function createBoardElement() {
       input.dataset.row = i;
       input.dataset.col = j;
       input.addEventListener('input', (e) => {
+        // Strip non-digit characters (only allow 1-9)
         const val = e.target.value.replace(/[^1-9]/g, '');
         e.target.value = val;
       });
@@ -39,11 +79,12 @@ function createBoardElement() {
 }
 
 function getConflictingCells() {
+  // Real-time conflict detection: highlight cells violating Sudoku rules
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
   const conflicts = new Set();
   
-  // Build a map of cell values
+  // Map cell values by position
   const cellValues = {};
   for (let i = 0; i < SIZE; i++) {
     for (let j = 0; j < SIZE; j++) {
@@ -55,7 +96,7 @@ function getConflictingCells() {
     }
   }
   
-  // Check each cell for conflicts
+  // Check each cell for conflicts with row, column, or 3x3 box
   for (let i = 0; i < SIZE; i++) {
     for (let j = 0; j < SIZE; j++) {
       const idx = i * SIZE + j;
@@ -150,6 +191,7 @@ function renderPuzzle(puz) {
       const val = puzzle[i][j];
       const inp = inputs[idx];
       if (val !== 0) {
+        // Prefilled cells are read-only
         inp.value = val;
         inp.disabled = true;
         inp.className += ' prefilled';
@@ -157,7 +199,7 @@ function renderPuzzle(puz) {
         inp.value = '';
         inp.disabled = false;
       }
-      // Add conflict detection on input
+      // Attach conflict detection listener to user-editable cells
       inp.addEventListener('input', updateConflictHighlighting);
     }
   }
@@ -175,7 +217,7 @@ function markCellAsHinted(row, col, value) {
 }
 
 function startTimer() {
-  // Clear any existing interval
+  // Reset and start elapsed time counter
   if (timerInterval) {
     clearInterval(timerInterval);
   }
@@ -194,6 +236,7 @@ function startTimer() {
 }
 
 async function getHint() {
+  // Request hint from server (fills one random empty cell)
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
   const board = [];
@@ -235,6 +278,7 @@ async function newGame() {
 }
 
 async function checkSolution() {
+  // POST current board state to server for validation
   const boardDiv = document.getElementById('sudoku-board');
   const inputs = boardDiv.getElementsByTagName('input');
   const board = [];
@@ -258,6 +302,7 @@ async function checkSolution() {
     msg.innerText = data.error;
     return;
   }
+  // Highlight incorrect cells returned by server
   const incorrect = new Set(data.incorrect.map(x => x[0]*SIZE + x[1]));
   for (let idx = 0; idx < inputs.length; idx++) {
     const inp = inputs[idx];
@@ -273,6 +318,7 @@ async function checkSolution() {
     if (timerInterval) {
       clearInterval(timerInterval);
     }
+    // Prompt for leaderboard entry
     setTimeout(() => {
       let playerName = window.prompt('You made the leaderboard! Enter your name:');
       if (playerName === null) playerName = '';
@@ -306,6 +352,7 @@ function saveTimeToLeaderboard(seconds, difficulty, hints, name) {
 }
 
 function renderLeaderboard() {
+  // Display top 10 fastest times from localStorage
   let leaderboard = [];
   try {
     leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard')) || [];
@@ -340,12 +387,14 @@ function formatTime(seconds) {
   return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
-// Wire buttons
+// Wire event listeners and initialize on page load
 window.addEventListener('load', () => {
+  initializeDarkMode();
+  document.getElementById('theme-toggle-btn').addEventListener('click', toggleDarkMode);
   document.getElementById('new-game').addEventListener('click', newGame);
   document.getElementById('check-solution').addEventListener('click', checkSolution);
   document.getElementById('hint-button').addEventListener('click', getHint);
-  // initialize
+  // Load first game
   newGame();
   renderLeaderboard();
 });
