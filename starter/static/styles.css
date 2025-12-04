@@ -1,5 +1,5 @@
 .sudoku-cell.hinted {
-    background-color: #7fff7f !important;
+    background-color: #388e3c !important;
     color: #1a1a1a;
 }
 body {
@@ -175,6 +175,10 @@ button {
 
 button:hover {
     background: #1565c0;
+}
+
+#hint-button {
+    background-color: #388e3c;
 }
 
 #message {
