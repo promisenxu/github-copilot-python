@@ -92,7 +92,7 @@ async function checkSolution() {
     const inp = inputs[idx];
     if (inp.disabled) continue;
     inp.className = 'sudoku-cell';
-    if (incorrect.has(idx)) {
+    if (inp.value && incorrect.has(idx)) {
       inp.className = 'sudoku-cell incorrect';
     }
   }
@@ -101,7 +101,7 @@ async function checkSolution() {
     msg.innerText = 'Congratulations! You solved it!';
   } else {
     msg.style.color = '#d32f2f';
-    msg.innerText = 'Some cells are incorrect.';
+    msg.innerText = 'Some cells are incorrect and/or missing.';
   }
 }
 
