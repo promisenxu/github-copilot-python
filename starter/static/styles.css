@@ -150,6 +150,7 @@ h1 {
     color: var(--text-secondary);
     transition: background 0.2s, border-color 0.2s, color 0.2s;
     touch-action: manipulation;
+    box-sizing: border-box;
 }
 
 .sudoku-cell:focus {
@@ -229,17 +230,20 @@ h1 {
 
 /* Conflict detection - red border */
 .sudoku-cell.conflict {
-    border: 2px solid var(--error-color) !important;
+    border-color: var(--error-color) !important;
+    border-width: 2px !important;
 }
 
 .sudoku-cell:nth-child(3),
 .sudoku-cell:nth-child(6) {
-    border-right: 2px solid var(--border-bold);
+    border-right-color: var(--border-bold);
+    border-right-width: 2px;
 }
 
 .sudoku-row:nth-child(3) .sudoku-cell,
 .sudoku-row:nth-child(6) .sudoku-cell {
-    border-bottom: 2px solid var(--border-bold);
+    border-bottom-color: var(--border-bold);
+    border-bottom-width: 2px;
 }
 
 .controls {
