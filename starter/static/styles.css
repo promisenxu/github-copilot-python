@@ -182,3 +182,46 @@ button:hover {
     font-size: 16px;
     color: #d32f2f;
 }
+
+/* Leaderboard table styles */
+.leaderboard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 30px auto 0 auto;
+}
+
+.leaderboard-table {
+    border-collapse: collapse;
+    margin: 0 auto;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    min-width: 340px;
+    max-width: 400px;
+}
+
+.leaderboard-table th, .leaderboard-table td {
+    border: 1px solid #d3cfcf;
+    padding: 10px 16px;
+    text-align: center;
+    font-size: 16px;
+}
+
+.leaderboard-table th {
+    background: #1976d2;
+    color: #fff;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.leaderboard-table tr:nth-child(even) td {
+    background: #f4f4f4;
+}
+
+.leaderboard-table tr:nth-child(odd) td {
+    background: #ffffff;
+}
+
+.leaderboard-table tr:hover td {
+    background: #e3f2fd;
+}

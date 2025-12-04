@@ -3,6 +3,7 @@ const SIZE = 9;
 let puzzle = [];
 let timerInterval = null;
 let startTime = null;
+let lastElapsedSeconds = 0;
 
 // Difficulty to clues mapping
 const DIFFICULTY_LEVELS = {
@@ -10,6 +11,9 @@ const DIFFICULTY_LEVELS = {
   medium: 35,
   hard: 20
 };
+
+let numberOfHintsRequested = 0;
+let difficultyLevelLastUsed = 'medium';
 
 function createBoardElement() {
   const boardDiv = document.getElementById('sudoku-board');
@@ -175,16 +179,15 @@ function startTimer() {
   if (timerInterval) {
     clearInterval(timerInterval);
   }
-  
   startTime = Date.now();
+  lastElapsedSeconds = 0;
   const timerDisplay = document.getElementById('timer');
-  
   timerInterval = setInterval(() => {
     const elapsed = Math.floor((Date.now() - startTime) / 1000);
+    lastElapsedSeconds = elapsed;
     const hours = Math.floor(elapsed / 3600);
     const minutes = Math.floor((elapsed % 3600) / 60);
     const seconds = elapsed % 60;
-    
     const timeString = `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
     timerDisplay.innerText = `Time: ${timeString}`;
   }, 1000);
@@ -202,7 +205,9 @@ async function getHint() {
   markCellAsHinted(data.row, data.col, data.value);
   msg.style.color = '#388e3c';
   msg.innerText = `Hint: Cell [${data.row+1}, ${data.col+1}] filled.`;
+  numberOfHintsRequested++;
 }
+
 async function newGame() {
   const difficulty = document.getElementById('difficulty').value;
   const clues = DIFFICULTY_LEVELS[difficulty];
@@ -210,6 +215,8 @@ async function newGame() {
   const data = await res.json();
   renderPuzzle(data.puzzle);
   document.getElementById('message').innerText = '';
+  numberOfHintsRequested = 0;
+  difficultyLevelLastUsed = difficulty;
 }
 
 async function checkSolution() {
@@ -248,10 +255,74 @@ async function checkSolution() {
   if (incorrect.size === 0) {
     msg.style.color = '#388e3c';
     msg.innerText = 'Congratulations! You solved it!';
+    if (timerInterval) {
+      clearInterval(timerInterval);
+    }
+    setTimeout(() => {
+      let playerName = window.prompt('You made the leaderboard! Enter your name:');
+      if (playerName === null) playerName = '';
+      playerName = playerName.trim();
+      if (!playerName) playerName = 'Anonymous';
+      saveTimeToLeaderboard(lastElapsedSeconds, difficultyLevelLastUsed, numberOfHintsRequested, playerName);
+      renderLeaderboard();
+    }, 300);
   } else {
     msg.style.color = '#d32f2f';
     msg.innerText = 'Some cells are incorrect and/or missing.';
   }
+}
+
+function saveTimeToLeaderboard(seconds, difficulty, hints, name) {
+  let leaderboard = [];
+  try {
+    leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard')) || [];
+  } catch (e) {
+    leaderboard = [];
+  }
+  leaderboard.push({
+    time: seconds,
+    difficulty: difficulty,
+    hints: hints,
+    name: name || 'Anonymous'
+  });
+  leaderboard.sort((a, b) => a.time - b.time);
+  leaderboard = leaderboard.slice(0, 10);
+  localStorage.setItem('sudokuLeaderboard', JSON.stringify(leaderboard));
+}
+
+function renderLeaderboard() {
+  let leaderboard = [];
+  try {
+    leaderboard = JSON.parse(localStorage.getItem('sudokuLeaderboard')) || [];
+  } catch (e) {
+    leaderboard = [];
+  }
+  let leaderboardDiv = document.getElementById('leaderboard');
+  if (!leaderboardDiv) {
+    leaderboardDiv = document.createElement('div');
+    leaderboardDiv.id = 'leaderboard';
+    leaderboardDiv.className = 'leaderboard';
+    const container = document.getElementById('sudoku-container') || document.body;
+    container.appendChild(leaderboardDiv);
+  }
+  if (leaderboard.length === 0) {
+    leaderboardDiv.innerHTML = '<h3>Top 10 Fastest Times</h3><p>No records yet.</p>';
+    return;
+  }
+  let html = '<h3>Top 10 Fastest Times</h3>';
+  html += `<table class="leaderboard-table"><thead><tr><th>Rank</th><th>Name</th><th>Time</th><th>Level</th><th>Hints</th></tr></thead><tbody>`;
+  leaderboard.forEach((entry, idx) => {
+    html += `<tr><td>${idx + 1}</td><td>${entry.name || 'Anonymous'}</td><td>${formatTime(entry.time)}</td><td>${entry.difficulty}</td><td>${entry.hints}</td></tr>`;
+  });
+  html += '</tbody></table>';
+  leaderboardDiv.innerHTML = html;
+}
+
+function formatTime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = seconds % 60;
+  return `${hours}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
 }
 
 // Wire buttons
@@ -261,4 +332,5 @@ window.addEventListener('load', () => {
   document.getElementById('hint-button').addEventListener('click', getHint);
   // initialize
   newGame();
+  renderLeaderboard();
 });
