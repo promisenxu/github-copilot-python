@@ -40,6 +40,24 @@ python app.py
 ```
 Flask runs on `http://127.0.0.1:5000` with debug mode enabled (hot-reload on changes).
 
+### Running Tests
+All tests are located in the `/tests` directory at the root level. Run tests with the virtual environment activated from the `starter` directory:
+
+```bash
+# From starter directory with .venv activated
+cd ..
+python -m pytest tests/ -v
+```
+
+Install testing dependencies first (one-time setup):
+```bash
+cd starter
+source .venv/bin/activate
+pip install -r dev_requirements.txt
+```
+
+**Important**: Always ensure the virtual environment in `/starter/.venv` is activated before running tests. The test files use path manipulation to import the Flask app and sudoku logic from the starter directory.
+
 ### Adding Features
 - **New game parameters**: Add query string to `/new` route (e.g., `?clues=40`); reflect in JavaScript `fetch('/new?clues=40')`
 - **Backend validation**: All board checks happen on server; client cannot be trusted
@@ -75,6 +93,16 @@ Flask runs on `http://127.0.0.1:5000` with debug mode enabled (hot-reload on cha
 - **CORS/XHR**: All requests within same origin; no special headers needed
 
 ## Testing & Debugging
+
+### Unit Tests
+- **Framework**: pytest with pytest-cov for coverage reporting
+- **Test location**: `/tests/` directory at project root
+- **Running tests**: From project root with venv activated: `python3 -m pytest tests/ -v`
+- **Coverage report**: `python3 -m pytest tests/ --cov=starter --cov-report=html`
+- **Test dependencies**: Specified in `starter/dev_requirements.txt`; install with `pip install -r dev_requirements.txt`
+- **Important**: Tests import from starter directory using path manipulation in `tests/test_app.py` fixture setup
+
+### Manual Testing
 - **Test puzzle generation**: Run `python -c "import sudoku_logic; p, s = sudoku_logic.generate_puzzle(35); print(p)"` in starter directory
 - **Browser DevTools**: Inspect network requests to `/check`; payload contains full board state for validation
 - **Flask debug**: Errors logged to console; modify `app.run(debug=True)` for production settings

@@ -42,6 +42,26 @@ python app.py
 
 7. Open http://127.0.0.1:5000 in your browser.
 
+### Running Tests
+
+1. Install development dependencies (from the starter directory with venv activated).
+
+```bash
+pip install -r dev_requirements.txt
+```
+
+2. Run tests from the project root directory.
+
+```bash
+python -m pytest tests/ -v
+```
+
+To run tests with coverage:
+
+```bash
+python -m pytest tests/ --cov=starter --cov-report=html
+```
+
 ## Project Instructions
 
 Use GitHub Copilot to refactor the code for this game to add more advanced features. The goal is to create a more modern and maintainable codebase and add additional functionality to the final product. You can use any combination of code completion and chat features, like Ask, Edit, or Agent modes.
