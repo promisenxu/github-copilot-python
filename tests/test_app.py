@@ -6,7 +6,7 @@ from pathlib import Path
 starter_path = Path(__file__).parent.parent / 'starter'
 sys.path.insert(0, str(starter_path))
 
-from app import app, CURRENT
+from app import app, game_service
 
 
 @pytest.fixture
@@ -53,9 +53,8 @@ def test_new_game_with_custom_clues(client):
 
 def test_check_solution_without_game(client):
     """Test that /check returns 400 error when no game is in progress."""
-    # Reset the game state to ensure no game is in progress
-    CURRENT['puzzle'] = None
-    CURRENT['solution'] = None
+    # Reset the game service state to ensure no game is in progress
+    game_service.reset()
     
     response = client.post('/check', json={'board': [[0] * 9 for _ in range(9)]})
     assert response.status_code == 400
@@ -87,8 +86,8 @@ def test_check_solution_with_valid_board(client):
     puzzle_data = new_response.get_json()
     puzzle = puzzle_data['puzzle']
     
-    # Get the solution from the app's CURRENT state
-    solution = CURRENT['solution']
+    # Get the solution from the game service
+    solution = game_service.get_solution()
     
     # Check the solution
     response = client.post('/check', json={'board': solution})

@@ -10,72 +10,94 @@
 ## Project Overview
 This is a Flask-based Sudoku game designed as a refactoring exercise. The architecture separates game logic (Python backend) from UI rendering (Vanilla JavaScript frontend) with clear client-server communication via Flask routes.
 
-**Stack**: Flask 2.0+, Vanilla JavaScript (no frameworks), HTML/CSS, Python 3
+**Stack**: Flask 2.0+, Vanilla JavaScript (ES6 modules), HTML/CSS, Python 3
+
+**Virtual Environment**: Located at `/starter/.venv` - MUST be activated before any Python operations
 
 ## Architecture & Components
 
-### Backend Structure (`starter/app.py`)
-- **Flask routes**: `/` (serves UI), `/new` (generates puzzle), `/check` (validates solution)
-- **In-memory state**: `CURRENT` dict stores the active `puzzle` and `solution` (complete filled board)
-- **Key pattern**: Puzzle generation returns both clue-filled board and complete solution; client never sees solution code-side
-- **Error handling**: POST `/check` returns 400 when no game is in progress
+### Backend Structure (Modular Services)
+- **`app.py`**: Flask routes - thin layer that delegates to services
+- **`services.py`**: `GameService` - manages game state (puzzle, solution)
+- **`validation_service.py`**: `ValidationService` - handles solution validation
+- **`sudoku_logic.py`**: Core logic functions + utility classes (`SudokuBoard`, `PuzzleGenerator`, `SolutionValidator`)
+- **`config.py`**: Centralized configuration constants
 
-### Sudoku Logic (`starter/sudoku_logic.py`)
-- **Core functions**:
-  - `fill_board(board)`: Backtracking solver that fills empty board with valid numbers
-  - `is_safe(board, row, col, num)`: Validates placement against row, column, and 3×3 box constraints
-  - `generate_puzzle(clues=35)`: Creates puzzle by filling valid board then removing `(81-clues)` cells randomly
-  - `remove_cells(board, clues)`: Removes cells but **doesn't verify uniqueness** — only approximately guarantees difficulty via clue count
-- **Constants**: `SIZE=9`, `EMPTY=0`
-- **Important**: Current implementation doesn't guarantee unique solutions; candidate patterns for improvement include backtracking verification
-
-### Frontend (`static/main.js`, `templates/index.html`)
-- **Board rendering**: Dynamically creates 9×9 grid of `<input>` elements; prefilled cells are disabled
-- **Input validation**: Real-time filtering — only digits 1–9 accepted, stripped on input event
-- **Check solution flow**: Collects board state, POSTs to `/check`, receives `{incorrect: [[row, col], ...]}`, highlights mismatches with CSS class
-- **CSS classes**: `.sudoku-cell`, `.prefilled`, `.incorrect` drive styling and UX feedback
+### Frontend Structure (ES6 Modules)
+- **`static/modules/config.js`**: Configuration constants
+- **`static/modules/themeManager.js`**: Dark/light mode handling
+- **`static/modules/timerManager.js`**: Game timer management
+- **`static/modules/boardManager.js`**: Board rendering and state
+- **`static/modules/leaderboardManager.js`**: High score persistence
+- **`static/modules/gameController.js`**: Game flow orchestration
+- **`static/main.js`**: Entry point - initializes all modules
+- **`templates/index.html`**: Minimal HTML structure
 
 ## Common Development Workflows
 
+### CRITICAL: Virtual Environment Setup
+**ALWAYS** activate the virtual environment in `/starter/.venv` before running ANY Python commands or terminal operations:
+
+```bash
+cd /Users/promisexu/github-copilot-python/starter
+source .venv/bin/activate
+```
+
+This must be done BEFORE:
+- Running `python app.py`
+- Running `python -m pytest`
+- Running any Python scripts
+- Installing packages with `pip`
+- Using `mcp_pylance_mcp_s_pylanceRunCodeSnippet` or similar tools
+
+The `.venv` folder already exists in the starter directory - do NOT create a new one.
+
 ### Starting the Development Server
 ```bash
-cd starter
-python3 -m venv .venv
+# Navigate to starter and activate venv first!
+cd /Users/promisexu/github-copilot-python/starter
 source .venv/bin/activate
-pip install -r requirements.txt
+
+# Then start the server
 python app.py
 ```
 Flask runs on `http://127.0.0.1:5000` with debug mode enabled (hot-reload on changes).
 
 ### Running Tests
-All tests are located in the `/tests` directory at the root level. Run tests with the virtual environment activated from the `starter` directory:
+All tests are located in the `/tests` directory at the root level:
 
 ```bash
-# From starter directory with .venv activated
+# Make sure you're in starter directory with venv activated
+cd /Users/promisexu/github-copilot-python/starter
+source .venv/bin/activate
+
+# Run tests from root directory
 cd ..
 python -m pytest tests/ -v
 ```
 
-Install testing dependencies first (one-time setup):
+**Important**: Always ensure the virtual environment in `/starter/.venv` is activated before running tests. The test files use path manipulation to import the Flask app and sudoku logic from the starter directory.
+
+For one-time setup of test dependencies:
 ```bash
-cd starter
+cd /Users/promisexu/github-copilot-python/starter
 source .venv/bin/activate
 pip install -r dev_requirements.txt
 ```
 
-**Important**: Always ensure the virtual environment in `/starter/.venv` is activated before running tests. The test files use path manipulation to import the Flask app and sudoku logic from the starter directory.
-
 ### Adding Features
 - **New game parameters**: Add query string to `/new` route (e.g., `?clues=40`); reflect in JavaScript `fetch('/new?clues=40')`
 - **Backend validation**: All board checks happen on server; client cannot be trusted
-- **New routes**: Import `sudoku_logic` module, manipulate puzzle/solution via CURRENT dict, return JSON
+- **New routes**: Use `GameService` for state management and `ValidationService` for validation
+- **Frontend components**: Extend module classes in `static/modules/` for new features
 
 ## Project Conventions & Patterns
 
 ### Code Style
-- **Python**: Simple procedural functions with minimal abstraction; no classes in core logic
-- **JavaScript**: Event listeners wired in `window.load`, dataset attributes for cell identification (`data-row`, `data-col`)
+- **Python**: Simple procedural functions with minimal abstraction; modular service classes for state management and validation
+- **JavaScript**: ES6 modules with class-based components for UI managers, timer, board, leaderboard, and game controller
 - **HTML**: Minimal structure; CSS classes drive interactivity
+- **Virtual Environment**: ALWAYS activate `/starter/.venv` before running Python commands
 
 ### CSS Styling Conventions
 - **Responsive design**: Use viewport-relative units (%, `rem`, `em`) and media queries; layout and font sizes must adapt cleanly between mobile and desktop
@@ -110,10 +132,18 @@ pip install -r dev_requirements.txt
 - **Important**: Tests import from starter directory using path manipulation in `tests/test_app.py` fixture setup
 
 ### Manual Testing
-- **Test puzzle generation**: Run `python -c "import sudoku_logic; p, s = sudoku_logic.generate_puzzle(35); print(p)"` in starter directory
+- **Test puzzle generation**: In starter directory with venv activated, run `python -c "import sudoku_logic; p, s = sudoku_logic.generate_puzzle(35); print(p)"`
 - **Browser DevTools**: Inspect network requests to `/check`; payload contains full board state for validation
 - **Flask debug**: Errors logged to console; modify `app.run(debug=True)` for production settings
+- **Activate venv before running Python commands**: Always ensure virtual environment is active in `/starter/.venv`
+
+## Key Files to Reference
+- **Backend modules**: `app.py` → `services.py` / `validation_service.py` → `sudoku_logic.py`
+- **Frontend modules**: `main.js` → `gameController.js` → individual managers (board, timer, etc.)
+- **Configuration**: `config.py` (backend), `config.js` (frontend)
+- **Architecture docs**: `ARCHITECTURE.md`, `MODULES_REFERENCE.md`
 
 ## References
-- **README.md**: Lists 12 refactoring goals (timer, hints, Top 10 leaderboard, difficulty selector, etc.)
-- **Key files to understand together**: `app.py` → `sudoku_logic.py` (core algorithm), then `main.js` ↔ `index.html` (UI flow)
+- **README.md**: Lists refactoring goals completed
+- **ARCHITECTURE.md**: Detailed modular component architecture
+- **MODULES_REFERENCE.md**: Quick API reference for all modules

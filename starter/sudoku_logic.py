@@ -1,5 +1,6 @@
 import copy
 import random
+import config
 
 SIZE = 9
 EMPTY = 0
@@ -110,3 +111,124 @@ def count_solutions(board, limit=2):
 def has_unique_solution(board):
     """Check if board has exactly one solution."""
     return count_solutions(board, limit=2) == 1
+
+
+# ============================================================================
+# Modular utility classes for cleaner abstraction
+# ============================================================================
+
+class SudokuBoard:
+    """Encapsulates board operations and validation."""
+
+    def __init__(self, size=SIZE):
+        """Initialize with board size."""
+        self.size = size
+        self.board = [[EMPTY for _ in range(size)] for _ in range(size)]
+
+    @staticmethod
+    def create_empty():
+        """Create a new empty board."""
+        return create_empty_board()
+
+    @staticmethod
+    def is_valid_placement(board, row, col, num):
+        """
+        Check if a number can be placed at a position.
+
+        Args:
+            board (list): 9x9 2D list
+            row, col (int): Position
+            num (int): Number to place (1-9)
+
+        Returns:
+            bool: True if placement is valid
+        """
+        return is_safe(board, row, col, num)
+
+    @staticmethod
+    def solve(board):
+        """
+        Solve a Sudoku puzzle using backtracking.
+
+        Args:
+            board (list): 9x9 2D list (modifies in place)
+
+        Returns:
+            bool: True if solvable
+        """
+        return fill_board(board)
+
+
+class PuzzleGenerator:
+    """Generates Sudoku puzzles with varying difficulty."""
+
+    @staticmethod
+    def generate(clues=35):
+        """
+        Generate a new puzzle with specified number of clues.
+
+        Args:
+            clues (int): Number of clues to include (17-81)
+
+        Returns:
+            tuple: (puzzle, solution) - both 9x9 2D lists
+        """
+        return generate_puzzle(clues)
+
+    @staticmethod
+    def has_unique_solution(board):
+        """
+        Check if a puzzle has exactly one solution.
+
+        Args:
+            board (list): 9x9 2D list
+
+        Returns:
+            bool: True if puzzle has unique solution
+        """
+        return has_unique_solution(board)
+
+
+class SolutionValidator:
+    """Validates and checks puzzle solutions."""
+
+    @staticmethod
+    def validate(board, solution):
+        """
+        Check if board matches solution.
+
+        Args:
+            board (list): User-submitted board
+            solution (list): Correct solution
+
+        Returns:
+            dict: Result with 'valid' bool and 'incorrect' cells list
+        """
+        incorrect = []
+        for i in range(SIZE):
+            for j in range(SIZE):
+                if board[i][j] != solution[i][j]:
+                    incorrect.append([i, j])
+
+        return {
+            'valid': len(incorrect) == 0,
+            'incorrect': incorrect
+        }
+
+    @staticmethod
+    def find_empty_cells(board):
+        """
+        Find all empty cells in a board.
+
+        Args:
+            board (list): 9x9 2D list
+
+        Returns:
+            list: List of [row, col] for empty cells
+        """
+        empty_cells = []
+        for i in range(SIZE):
+            for j in range(SIZE):
+                if board[i][j] == EMPTY:
+                    empty_cells.append([i, j])
+        return empty_cells
